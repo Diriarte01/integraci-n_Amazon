@@ -1,6 +1,7 @@
 /**
  *@NApiVersion 2.1
  *@NScriptType Restlet
+ *@author Catalina R
  */
 define(["N/search"], (search) =>{
 
@@ -15,8 +16,10 @@ define(["N/search"], (search) =>{
             columns.push(search.createColumn({ name: "salesdescription", label: "Descripción" }))
             columns.push(search.createColumn({ name: "type", label: "Tipo" }))
             columns.push(search.createColumn({ name: "baseprice", label: "Precio base" }))
-            columns.push(search.createColumn({ name: "totalquantityonhand", label: "Cantidad física total" }))
-            const filters = []
+            columns.push(search.createColumn({ name: "quantityavailable", label: "Disponible" }))
+            const filters = [["type","anyof","InvtPart","NonInvtPart"]]
+            filters.push("AND", ["quantityavailable","greaterthan","0"])
+
             var itemSearchObj = search.create({ type: type, filters: filters, columns: columns });
             itemSearchObj.run().each(rs => {
                 const obj = new Object();
@@ -25,7 +28,7 @@ define(["N/search"], (search) =>{
                 obj.description = rs.getValue("salesdescription")
                 obj.type = rs.getValue("type")
                 obj.baseprice = rs.getValue("baseprice")
-                obj.totalquantity = rs.getValue("totalquantityonhand")
+                obj.quantityavailable = rs.getValue("quantityavailable")
                 response.data.push(obj);
                 response.code = 200;
                 response.success = true;
