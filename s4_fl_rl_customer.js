@@ -122,141 +122,113 @@ define(["N/search", 'N/record'], (search, record) => {
     }
 
     handlers.put = (context) => {
-        log.debug('Creando Contacto', context)
-        const response = {
-            code: 400, 
-            success: false,
-            data: [],
-            errors: []
-        }
-        try {
-            const data = context.data;
-            let recordObj = record.create({
-                type: 'contact',
-                isDinamyc: false,
-            })
-            recordObj.setValue({
-                fieldId: 'entityid',
-                value: data.name
-                })
-            recordObj.setValue({
-                fieldId: 'email',
-                value: data.email   
-            })
-            recordObj.setValue({
-                fieldId: 'phone',
-                value: data.phone
-            })
-            recordObj.setValue({
-                fieldId: 'company',
-                value: data.company
-            })
-            recordObj.setValue({
-                fieldId: 'title',
-                value: data.title
-            })
-            recordObj.setValue({
-                fieldId: 'subsidiary',
-                value: data.subsidiary
-            })
-            const saveRecord = recordObj.save()
-            response.data.push({
-                internalId: saveRecord,
-                typeRecord: 'contact'
-            })
-            response.code = 200
-            response.success = true;
-        } catch (e) {
-            log.error("no se puede crear el cliente", e.message)
-            response.code = 500
-            response.errors = e.message
-            response.success = false
-            response.errors.push(e.message);
-        } finally {
-            return response
-        }
-
-
-    }
-
-    function _put(context) {
-
-
         const response = {
             code: 400, success: false,
             data: [],
-            errors: []
+            errors: [],
+            message: ''
         }
         const responseBusqueda = {
             code: 400, success: false,
             data: [],
-            errors: []  
+            errors: []
         }
 
         try {
+            log.debug('Buscando Cliente', context)
             const data = context.data;
             const type = 'customer';
-            const filters = [["entityid","is",data.name]];
+            const filters = [["entityid", "is", data.name]];
             const columns = [search.createColumn({ name: "internalid", label: "Internal ID" })]
             columns.push(search.createColumn({ name: "email", label: "Email" }))
             columns.push(search.createColumn({ name: "phone", label: "Phone" }))
             columns.push(search.createColumn({ name: "address", label: "Address" }))
-            const contactSearchObj = search.create({
+            const customerSearchObj = search.create({
                 type: type,
                 filters: filters,
                 columns: columns,
             });
-            contactSearchObj.run().each(function (result) {
+            customerSearchObj.run().each(function (rs) {
                 let obj = new Object();
-                obj.internalId = result.id;
-                obj.name = result.getValue('entityid')
-                obj.email = result.getValue('email')
-                obj.phone = result.getValue('phone')
-                obj.company = result.getValue('company')
-                obj.title = result.getValue('title')
+                obj.internalId = rs.id;
+                obj.name = rs.getValue("internalid");
                 responseBusqueda.data.push(obj)
                 return true;
             });
             const obj = responseBusqueda.data
-            let recordObj = record.load({
-                type: 'contact',
-                id: obj[0].internalId,
+            if (customerSearchObj.runPaged().count == 1) {
+                let recordObj = record.load({
+                    type: 'customer',
+                    id: obj[0].internalId,
 
-            })
-
-            recordObj.setValue({
-                fieldId: 'entityid',
-                value: data.name
                 })
-            recordObj.setValue({
-                fieldId: 'email',
-                value: data.email   
-            })
-            recordObj.setValue({
-                fieldId: 'phone',
-                value: data.phone
-            })
-            recordObj.setValue({
-                fieldId: 'company',
-                value: data.company
-            })
-            recordObj.setValue({
-                fieldId: 'title',
-                value: data.title
-            })
+                recordObj.setValue({
+                    fieldId: 'entityid',
+                    value: data.name
+                })
+                if (data.isperson == "T") {
+                    recordObj.setValue({
+                        fieldId: 'firstname',
+                        value: data.name
+                    })
+                    let parse = data.name.split(" ")
+                    recordObj.setValue({
+                        fieldId: 'lastname',
+                        value: parse[1]
+                    })
 
-            recordObj.save();
-            response.data.push(data)
-            response.code = 200
-            response.success = true;
+                }
+                recordObj.setValue({
+                    fieldId: 'email',
+                    value: data.email
+                })
+                recordObj.setValue({
+                    fieldId: 'phone',
+                    value: data.phone
+                })
+                recordObj.setValue({
+                    fieldId: 'companyname',
+                    value: data.company
+                })
+                recordObj.setValue({
+                    fieldId: 'subsidiary',
+                    value: data.subsidiary
+                })
+                recordObj.setValue({
+                    fieldId: 'defaultaddress',
+                    value: data.address
+                })
+                recordObj.setValue({
+                    fieldId: 'salesrep',
+                    value: data.salesrep
+                })
+                recordObj.setValue({
+                    fieldId: "isperson",
+                    value: data.isperson
+                })
+                recordObj.save();
+
+                response.data.push(data)
+                response.code = 200
+                response.success = true;
+                response.message = 'Se edito el cliente correctamente'
+            } else {
+                response.code = 400
+                response.success = false
+                response.errors.push('No se encontro el cliente')
+
+            }
+
         } catch (error) {
             log.error("no se pudo editar el cliente", e.message)
             response.code = 500
             response.errors = e.message
             response.success = false
             response.errors.push(e.message);
+        } finally {
+            return JSON.stringify(response)
         }
-           
+
     }
 
     handlers.delete = (context) => {
