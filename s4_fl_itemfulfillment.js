@@ -75,7 +75,7 @@ define(['N/search', 'N/record'], function (search, record) {
             const data = context.data
             log.debug('data', data)
 
-            Cargamos el record correspondiente al id introducido por Amazon
+            //Cargamos el record correspondiente al id introducido por Amazon
             let updateStatus = record.load({
                 type: "itemfulfillment",
                 id: data.id,
