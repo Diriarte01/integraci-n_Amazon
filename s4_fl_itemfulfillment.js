@@ -1,6 +1,7 @@
 /**
  *@NApiVersion 2.1
  *@NScriptType Restlet
+ *@author: León Basauri
  */
 define(['N/search', 'N/record'], function (search, record) {
 
@@ -135,7 +136,6 @@ define(['N/search', 'N/record'], function (search, record) {
 
     return {
         get: _get,
-
         put: _put,
     }
 });
