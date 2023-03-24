@@ -68,7 +68,6 @@ define(['N/search','N/record'], function (search,record) {
         try {
             const data = context.data;
             log.debug('Creando Orden de Venta', data)
-
             const salesOrder = record.create({
                 type: record.Type.SALES_ORDER,
             })
@@ -76,18 +75,21 @@ define(['N/search','N/record'], function (search,record) {
                 fieldId: 'entity',
                 value: data.name
             })
-            salesOrder.setSublistValue({   
-                sublistId: 'item',
-                fieldId: 'item',
-                line: 0,
-                value: data.item
-            })
-            salesOrder.setSublistValue({
-                sublistId: 'item',
-                fieldId: 'quantity',
-                line: 0,
-                value: data.quantity
-            })
+            for(let i = 0; i < data.items.length; i++){
+                salesOrder.setSublistValue({   
+                    sublistId: 'item',
+                    fieldId: 'item',
+                    line: i,
+                    value: data.items[i].item
+                })
+                salesOrder.setSublistValue({
+                    sublistId: 'item',
+                    fieldId: 'quantity',
+                    line: i,
+                    value: data.items[i].quantity
+                })
+            }
+            
             salesOrder.setValue({
                 fieldId:'location',
                 value: data.location
@@ -111,6 +113,7 @@ define(['N/search','N/record'], function (search,record) {
         } finally {
             return JSON.stringify(response)
         }
+
 
     }
 
