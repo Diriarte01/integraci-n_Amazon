@@ -50,7 +50,7 @@ define(["N/search", 'N/record'], (search, record) => {
         const response = { code: 400, success: false, data: [], error: [], message: '' }
 
         try {
-            log.debug('Creando Contacto', context)
+            log.debug('Creando Cliente', context)
             const data = context.data;
             let recordObj = record.create({
                 type: 'customer',
@@ -117,7 +117,7 @@ define(["N/search", 'N/record'], (search, record) => {
             response.success = false;
             response.error.push(error.message);
         } finally {
-            return response
+            return JSON.stringify(response)
         }
     }
 
