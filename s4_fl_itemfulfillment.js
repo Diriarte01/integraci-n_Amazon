@@ -34,6 +34,9 @@ define(['N/search', 'N/record'], function (search, record) {
 
             itemfulfillmentSearchObj.run().each(function (result) {
                 log.debug('result', result)
+                
+                /* Aquí organizamos los datos obtenidos en la búsqueda dentro de un objeto 
+                que será mostrado en panatalla al momento de ejecutar el GET */
                 let obj = new Object();
                 obj.id = result.id;
                 obj["Customer"] = result.getText("entity");
@@ -41,7 +44,7 @@ define(['N/search', 'N/record'], function (search, record) {
                 //obj["Received by the customer"] = result.getValue("custbody_s4_fl__received_check");
                 log.debug('obj', obj)
 
-                response.data.push(obj); //Mandamos al body del Postman los valores obtenidos de la búsqueda
+                response.data.push(obj); //Mandamos a Amazon los valores obtenidos de la búsqueda
 
                 return true;
             });
@@ -68,11 +71,11 @@ define(['N/search', 'N/record'], function (search, record) {
 
 
         try {
-            log.debug('Initializing updating shipstatus', context); //Un mensaje de consola para comprobar si entra la función al enviar el PUT en Postman
+            log.debug('Initializing updating shipstatus', context); //Un mensaje de consola para comprobar si entra la función al enviar el PUT
             const data = context.data
             log.debug('data', data)
 
-
+            Cargamos el record correspondiente al id introducido por Amazon
             let updateStatus = record.load({
                 type: "itemfulfillment",
                 id: data.id,
@@ -80,9 +83,7 @@ define(['N/search', 'N/record'], function (search, record) {
             })
 
 
-            /* De manera muy similar a como hicimos con el POST, 
-            vamos a estructurar el JSON del Postman para que acceda 
-            a los campos de un registro ya existente y los cambie */
+            /* Aquí tomamos los valores ingresados en el PUT para que sean consumidos por NS */
             if (data["Status"] == "shipped") {
                 updateStatus.setValue({
                     fieldId: "shipstatus",
