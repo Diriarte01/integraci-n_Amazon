@@ -3,7 +3,9 @@
  *@NScriptType Restlet
  *@author: León Basauri
  */
-define(['N/search', 'N/record'], function (search, record) {
+
+const errorModule = "SuiteScripts/-n_Amazon/errorModule.js"
+define(['N/search', 'N/record', errorModule], function (search, record, errorModule) {
 
     const response = { code: 400, success: false, message: "", data: [], error: [] }
 
@@ -13,36 +15,34 @@ define(['N/search', 'N/record'], function (search, record) {
 
             const itemFullfilment = context.id
             log.debug('context id', itemFullfilment)
+            const type = "itemfulfillment"
             const filters = [["mainline", "is", "T"]]
             filters.push("AND", ["type", "anyof", "ItemShip"])
             filters.push("AND", ["status", "anyof", "ItemShip:B"])
-
             //Si se introduce un id en los parámetros del GET, se agrega este filtro extra 
             if (itemFullfilment) {
                 filters.push("AND", ["internalid", "anyof", itemFullfilment])
             }
 
-            const itemfulfillmentSearchObj = search.create({
-                type: "itemfulfillment",
-                filters: filters,
-                columns:
-                    [
-                        search.createColumn({ name: "entity", label: "Customer" }),
-                        search.createColumn({ name: "statusref", label: "Status" }),
-                        //search.createColumn({ name: "custbody_s4_fl__received_check", label: "Received by the customer" })
-                    ]
-            });
+            const columns = [search.createColumn({ name: "entity", label: "Customer" })]
+            columns.push(search.createColumn({ name: "statusref", label: "Status" }))
 
+            const itemfulfillmentSearchObj = search.create({
+                type: type,
+                filters: filters,
+                columns: columns
+            });
+            let searchSomething = false;
             itemfulfillmentSearchObj.run().each(function (result) {
                 log.debug('result', result)
-                
+                searchSomething = true;
                 /* Aquí organizamos los datos obtenidos en la búsqueda dentro de un objeto 
                 que será mostrado en panatalla al momento de ejecutar el GET */
                 let obj = new Object();
                 obj.id = result.id;
                 obj["Customer"] = result.getText("entity");
                 obj["Status"] = result.getValue("statusref");
-                //obj["Received by the customer"] = result.getValue("custbody_s4_fl__received_check");
+                //obj["Received by the customer"] = result.getValue("custbody_s4_fl_received_check");
                 log.debug('obj', obj)
 
                 response.data.push(obj); //Mandamos a Amazon los valores obtenidos de la búsqueda
@@ -52,6 +52,9 @@ define(['N/search', 'N/record'], function (search, record) {
             response.message = "The following orders are packed and ready to be picked up by Amazon"
             response.code = 200 //Este código significa OK
             response.success = true
+
+
+            if (searchSomething == "") { errorModule.handleError("There are no orders ready to be picked up") }
 
         }
 
@@ -99,10 +102,20 @@ define(['N/search', 'N/record'], function (search, record) {
                 })
             }
 
-            updateStatus.setValue({
-                fieldId: "custbody_s4_fl__received_check",
-                value: data["Received by the customer"] //it can be true or false
-            })
+            if (data["Received by the customer"] == "yes") {
+                updateStatus.setValue({
+                    fieldId: "custbody_s4_fl_received_check",
+                    value: true //it can be true or false
+                })
+            }
+
+            if (data["Received by the customer"] == "no") {
+                updateStatus.setValue({
+                    fieldId: "custbody_s4_fl_received_check",
+                    value: false //it can be true or false
+                })
+            }
+
 
 
             /*  Aquí abajo llamamos al objeto updateStatus que almacenó los valores de los campos 
