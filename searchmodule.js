@@ -18,10 +18,17 @@ define(['N/search',errorModule], function (search, errorM) {
         try {
             switch (typeSearch) {
                 case 'customer':
-
-                    const customer = context.id
+                    let customer = context.id
+                    let data = context.data
                     filters = []
-                    if (customer) filters.push(["internalid", "anyof", customer])
+                    if (customer != undefined) {
+                        filters.push(["internalid", "anyof", customer])
+                    } else if(data != undefined) {
+                        customer = data.name
+                        if (customer != undefined) { 
+                            filters.push(["entityid","is","Omar Barros"]) 
+                        }
+                    }
                     type = "customer";
                     columns = [search.createColumn({ name: "internalid", label: "Internal ID" })]
                     columns.push(search.createColumn({ name: "email", label: "Email" }))
@@ -33,7 +40,10 @@ define(['N/search',errorModule], function (search, errorM) {
                         filters: filters,
                         columns: columns
                     });
-                    
+                    log.audit({
+                        title: "searchCreate",
+                        details: customerSearchObj
+                    })
                     customerSearchObj.run().each(rs => {
                         exist = true;
                         const obj = new Object();
@@ -45,8 +55,13 @@ define(['N/search',errorModule], function (search, errorM) {
                         response.data.push(obj);
                         response.code = 200;
                         response.success = true;
+                        
                         return true;
                     });
+                    log.audit({
+                        title: "response",
+                        details: response.data
+                    })
                     if(!exist){
                         response.code = 404;
                         response.success = true;
