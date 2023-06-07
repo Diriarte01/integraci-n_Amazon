@@ -41,9 +41,7 @@ define(['N/search', integrationLog, errorModule], (search, integration, errorMod
                 return true;
             });
             existSearch ? "": errorModule.handleError("No se encontraron articulos en su busqueda")
-            const t1 = "adwdwdw";
-            const t2 = "ad222dw";
-            let x = integration.handleRequest(context, t1, t2);
+            let x = integration.handleRequest("GET", response, item);
 
         } catch (error) {
             log.error("error", error.message)
